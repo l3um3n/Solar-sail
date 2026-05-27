@@ -1,0 +1,130 @@
+#include <Servo.h>
+
+// ----- LDR SENSOR PINS -----
+int LDR1 = A0;   // Left
+int LDR2 = A1;   // Right
+int LDR3 = A2;   // Top
+int LDR4 = A3;   // Bottom
+
+// ----- SENSOR VALUES -----
+int val1 = 0;
+int val2 = 0;
+int val3 = 0;
+int val4 = 0;
+
+// ----- SERVOS -----
+Servo servo1;   // Left/Right
+Servo servo2;   // Up/Down
+Servo servo3;   // Sail Deployment
+
+// ----- SERVO POSITIONS -----
+int pos1 = 90;
+int pos2 = 90;
+int pos3 = 20;
+
+void setup()
+{
+    Serial.begin(9600);
+
+    // Attach servos
+    servo1.attach(9);
+    servo2.attach(10);
+    servo3.attach(11);
+
+    // Starting positions
+    servo1.write(pos1);
+    servo2.write(pos2);
+    servo3.write(pos3);
+}
+
+void loop()
+{
+    // ----- READ LDR VALUES -----
+    val1 = analogRead(LDR1);
+    val2 = analogRead(LDR2);
+    val3 = analogRead(LDR3);
+    val4 = analogRead(LDR4);
+
+    // Print values for debugging
+    Serial.print("LDR1: ");
+    Serial.print(val1);
+
+    Serial.print("   LDR2: ");
+    Serial.print(val2);
+
+    Serial.print("   LDR3: ");
+    Serial.print(val3);
+
+    Serial.print("   LDR4: ");
+    Serial.println(val4);
+
+    // ==================================================
+    // LEFT / RIGHT CONTROL
+    // ==================================================
+
+    if (val1 > val2)
+    {
+        pos1++;
+        Serial.println("Turning Left");
+    }
+    else if (val2 > val1)
+    {
+        pos1--;
+        Serial.println("Turning Right");
+    }
+    else
+    {
+        Serial.println("Horizontal Stable");
+    }
+
+    // ==================================================
+    // UP / DOWN CONTROL
+    // ==================================================
+
+    if (val3 > val4)
+    {
+        pos2++;
+        Serial.println("Tilting Up");
+    }
+    else if (val4 > val3)
+    {
+        pos2--;
+        Serial.println("Tilting Down");
+    }
+    else
+    {
+        Serial.println("Vertical Stable");
+    }
+
+    // ==================================================
+    // LIMIT SERVO RANGES
+    // ==================================================
+
+    pos1 = constrain(pos1, 0, 180);
+    pos2 = constrain(pos2, 0, 180);
+
+    // Move servos
+    servo1.write(pos1);
+    servo2.write(pos2);
+
+    // ==================================================
+    // DEPLOYMENT CONTROL
+    // ==================================================
+
+    int averageLight = (val1 + val2 + val3 + val4) / 4;
+
+    if (averageLight > 700)
+    {
+        pos3 = 120;
+        Serial.println("Opening Sail");
+    }
+    else
+    {
+        pos3 = 20;
+        Serial.println("Closing Sail");
+    }
+
+    servo3.write(pos3);
+
+    delay(20);
+}
