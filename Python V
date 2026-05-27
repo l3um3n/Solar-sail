@@ -1,0 +1,16 @@
+LDR1 = 0                                    #not actually correct values.
+LDR2=0
+If LDR1>0:                                    
+	Print(“Turn the sail”)             #Motor should turn this way
+Elif LDR1 <0:
+	print (“sail stays the same”)     # Motor doesn’t turn
+Else:
+	print(“Sail stay the same”)       #Motor doesn’t turn
+
+
+If LDR2 <0 and LDR1<0:
+	print(“Turn sail to the sensor with the least resistance”)  #Motor
+Elif LDR2>0 and LDR1>0:
+	print(“Sail doesnt move”) #Motor doesn't turn
+Elif LDR2>0 and LDR1<0:
+	print(“sail points to lowest resistance”)
