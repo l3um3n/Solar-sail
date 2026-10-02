@@ -1,5 +1,7 @@
 # Solar-sail
 
+Light-Seeking Solar Sail Mechanism is an Arduino-based prototype designed to demonstrate autonomous light tracking and solar-sail attitude control. The system uses four photoresistors positioned around the sail to determine the direction and relative intensity of a light source, then drives servo motors to adjust the sail's horizontal and vertical orientation. A third servo controls sail deployment, allowing the system to remain compact while searching and deploy once the light source is properly aligned. The project explores feedback control, sensor fusion, autonomous positioning, and concepts applicable to spacecraft attitude control and solar-energy collection. Future development includes integrating an IMU such as the MPU-6050 to account for changes in the system's physical orientation.
+
 What it does and what problem it solves.
 
 ## Demo
