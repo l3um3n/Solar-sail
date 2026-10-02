@@ -1,0 +1,137 @@
+Arduino V3
+
+#include <Servo.h>
+
+// ------------------- Sensors -------------------
+const int LDR1 = A0;   // Top Left
+const int LDR2 = A1;   // Top Right
+const int LDR3 = A2;   // Bottom Left
+const int LDR4 = A3;   // Bottom Right
+
+// ------------------- Servos -------------------
+Servo servo1;   // Left / Right
+Servo servo2;   // Up / Down
+Servo servo3;   // Sail Deploy
+
+// ------------------- Positions -------------------
+int pos1 = 90;
+int pos2 = 90;
+
+const int SAIL_CLOSED = 20;
+const int SAIL_OPEN = 120;
+
+// ------------------- Thresholds -------------------
+const int ALIGN_THRESHOLD = 50;
+const int LOST_THRESHOLD = 100;
+const int STEP_SIZE = 1;
+
+// ------------------- States -------------------
+enum State {
+  SEARCH,
+  DEPLOYED
+};
+
+State currentState = SEARCH;
+
+void setup()
+{
+  Serial.begin(9600);
+
+  servo1.attach(9);
+  servo2.attach(10);
+  servo3.attach(11);
+
+  servo1.write(pos1);
+  servo2.write(pos2);
+  servo3.write(SAIL_CLOSED);
+}
+
+void loop()
+{
+  int val1 = analogRead(LDR1);
+  int val2 = analogRead(LDR2);
+  int val3 = analogRead(LDR3);
+  int val4 = analogRead(LDR4);
+
+  // ---------- Horizontal and Vertical Error ----------
+  int leftBrightness =
+      val1 + val3;
+
+  int rightBrightness =
+      val2 + val4;
+
+  int topBrightness =
+      val1 + val2;
+
+  int bottomBrightness =
+      val3 + val4;
+
+  int horizontalError =
+      leftBrightness - rightBrightness;
+
+  int verticalError =
+      topBrightness - bottomBrightness;
+
+  // ---------- Alignment Quality ----------
+  int maxVal = max(max(val1, val2), max(val3, val4));
+  int minVal = min(min(val1, val2), min(val3, val4));
+
+  int spread = maxVal - minVal;
+
+  Serial.print("Spread: ");
+  Serial.println(spread);
+
+  // ======================================================
+  // SEARCH MODE
+  // ======================================================
+
+  if (currentState == SEARCH)
+  {
+    servo3.write(SAIL_CLOSED);
+
+    // Horizontal tracking
+    if (horizontalError > ALIGN_THRESHOLD)
+      pos1++;
+
+    if (horizontalError < -ALIGN_THRESHOLD)
+      pos1--;
+
+    // Vertical tracking
+    if (verticalError > ALIGN_THRESHOLD)
+      pos2++;
+
+    if (verticalError < -ALIGN_THRESHOLD)
+      pos2--;
+
+    pos1 = constrain(pos1, 0, 180);
+    pos2 = constrain(pos2, 0, 180);
+
+    servo1.write(pos1);
+    servo2.write(pos2);
+
+    // Target found
+    if (spread < ALIGN_THRESHOLD)
+    {
+      Serial.println("LOCK ACQUIRED");
+      currentState = DEPLOYED;
+    }
+  }
+
+  // ======================================================
+  // DEPLOYED MODE
+  // ======================================================
+
+  if (currentState == DEPLOYED)
+  {
+    servo3.write(SAIL_OPEN);
+
+    // If target moves away
+    if (spread > LOST_THRESHOLD)
+    {
+      Serial.println("TARGET LOST");
+      currentState = SEARCH;
+    }
+  }
+
+  delay(50);
+}
